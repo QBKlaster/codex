@@ -53,6 +53,7 @@ js += `\ndocument.addEventListener('click', function (event) {
   try { history.replaceState(null, '', fragment); } catch {}
 });\n`
 html = html.replace(script[0], '')
+html = html.replace(/^[\t ]+$/gm, '')
 // A replacement callback preserves literal $&, $' and $$ in minified bundles.
 html = html.replace(stylesheet[0], () => `<style>${css.replace(/<\/style/gi, '<\\/style')}</style>`)
 const favicon = await dataUrl('/favicon.svg')

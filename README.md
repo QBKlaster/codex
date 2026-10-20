@@ -17,14 +17,20 @@ Vite 3000-portda barcha interfeyslarni tinglaydi. Boshqa joyga o‘rnatilganda l
 ```sh
 npm run build   # TypeScript tekshiruvi va dist/ yig‘ilmasi
 npm run build:standalone # Dizaynni o‘zgartirmasdan bitta mustaqil HTML fayl
+npm run build:pages # GitHub Pages uchun asosiy index.html faylini yangilash
 npm run preview # Tayyor yig‘ilmani 3000-portda tekshirish
 npm test        # Brauzer tekshiruvlari; avval dev serverni ishga tushiring
 npm run test:standalone # Mustaqil HTML va sandbox iframe tekshiruvi
+npm run test:pages # Tayyor saytni /codex/ manzilida oddiy statik server bilan tekshirish
 ```
 
 Playwright tekshiruvlari muhitdagi `/usr/bin/chromium` brauzeridan foydalanadi. Boshqa tizimda `playwright.config.ts` dagi `executablePath` ni moslang yoki Playwright brauzerini o‘rnating.
 
-`standalone/index.html` saytning barcha skriptlari, stillari, shriftlari va rasmlarini o‘z ichiga oladi. Faylni serversiz va internetsiz brauzerda ochish mumkin. Dizayn va funksiyalar asosiy sayt bilan bir xil. `index.html` manba fayli esa Vite serveri orqali ochiladi; uni alohida HTML sifatida ko‘rsatish ishlamaydi.
+`standalone/index.html` saytning barcha skriptlari, stillari, shriftlari va rasmlarini o‘z ichiga oladi. Faylni serversiz va internetsiz brauzerda ochish mumkin. Dizayn va funksiyalar asosiy sayt bilan bir xil.
+
+Ishlab chiqish uchun Vite `src/index.html` faylidan foydalanadi. Repozitoriy asosidagi `index.html` esa `npm run build:pages` orqali yaratilgan, GitHub Pages uchun tayyor mustaqil sahifadir. Uni qo‘lda tahrirlamang; `src/` ichidagi kodni o‘zgartirgach `npm run build:pages` ni bajaring va yangilangan `index.html` ni commit qiling.
+
+GitHub Pages: **Settings → Pages → Deploy from a branch → main → / (root)**. Asosiy sahifa barcha resurslarni o‘z ichiga olgani uchun `https://qbklaster.github.io/codex/` manzilida `/assets` yoki `/src` yo‘llariga bog‘lanmaydi. `.nojekyll` fayli tayyor sahifani o‘zgartirmasdan nashr qilishni ta’minlaydi.
 
 ## Imkoniyatlar
 
@@ -44,4 +50,4 @@ Telefon, aniq manzil, narxlar va korxona statistikasi o‘ylab topilmagan. Haqiq
 
 So‘rovlar serverga avtomatik yuborilmaydi. Ular brauzerda tayyorlanadi; foydalanuvchi faylni rasmiy aloqa kanali orqali yuborishi mumkin. Telegram, CRM yoki elektron pochta orqali yuborish uchun alohida server integratsiyasi talab qilinadi. Maxfiy tokenlarni brauzer kodiga kiritmang.
 
-Nashr qilish uchun `npm run build` buyrug‘idan keyin `dist/` katalogini statik hostingga joylashtiring. Ushbu ish jarayonida tashqi hostingga nashr qilinmagan va domen sozlamalari o‘zgartirilmagan.
+GitHub Pages uchun `npm run build:pages` va `npm run test:pages` buyruqlaridan keyin asosiy `index.html` va `.nojekyll` fayllarini `main` tarmog‘iga yuboring. Mustaqil HTML boshqa statik hostinglarda ham ishlaydi. `npm run build` yaratgan `dist/` esa domenning asosiy yo‘lida xizmat ko‘rsatadigan odatiy statik hosting uchun mo‘ljallangan. Maxsus domen sozlamalari o‘zgartirilmagan.
