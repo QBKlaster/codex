@@ -33,6 +33,8 @@ Playwright tekshiruvlari muhitdagi `/usr/bin/chromium` brauzeridan foydalanadi. 
 - Kalkulyator yoki mahsulotdan so‘rov shakliga ma’lumot uzatish.
 - Shakl tekshiruvi, matnni nusxalash va so‘rovni `.txt` fayl sifatida yuklab olish.
 - Klaviatura navigatsiyasi, dialoglarda fokusni boshqarish va harakatni kamaytirish sozlamasi.
+- Satrma-satr ochiladigan sarlavha, aylantirishda ketma-ket paydo bo‘ladigan bo‘limlar, kompyuterda kursor bilan yengil 3D harakat va tugma effektlari.
+- Kalkulyator natijasining silliq o‘zgarishi; ekran o‘quvchisi va so‘rov shakli doimo aniq yakuniy qiymatni oladi. Qurilmada harakatni kamaytirish yoqilsa, animatsiyalar o‘chadi.
 
 ## Haqiqiy ma’lumotlar va nashr qilish
 

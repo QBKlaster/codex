@@ -3,6 +3,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, Blocks, Box, C
 import { ProductVisual } from './components/ProductVisual'
 import { RequestDialog } from './components/RequestDialog'
 import { ConcreteCalculator } from './components/ConcreteCalculator'
+import { useSiteMotion } from './hooks/useSiteMotion'
 
 const products = [
   { id: 'mix', title: 'Tayyor beton', tag: 'M200 — M350', text: 'Poydevordan murakkab konstruksiyalargacha — loyihangizga mos beton yechimi.', variant: 'mix' as const, category: 'Beton', icon: Box, details: 'Poydevor, pol va monolit konstruksiyalar uchun tayyor beton. Kerakli marka konstruktiv loyiha va mutaxassis tavsiyasi asosida tanlanadi.', specs: [['Qo‘llanishi', 'Poydevor, pol, monolit'], ['Hisob birligi', 'm³'], ['Marka', 'Loyihaga muvofiq']] },
@@ -29,6 +30,7 @@ function Logo({ light = false }: { light?: boolean }) {
 }
 
 export default function App() {
+  useSiteMotion()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [request, setRequest] = useState<string | null>(null)
   const [filter, setFilter] = useState('Barchasi')
@@ -53,6 +55,7 @@ export default function App() {
 
   return <>
     <a className="skip-link" href="#asosiy">Asosiy mazmunga o‘tish</a>
+    <div className="reading-progress" aria-hidden="true"><span /></div>
     <div className="top-bar"><div className="container top-bar-inner"><span><MapPin size={12} /> Qarshi, O‘zbekiston</span><span>Buyuk loyihalar mustahkam asosdan boshlanadi.</span><a href="#kalkulyator">Beton hajmini hisoblash <ArrowUpRight size={12} /></a></div></div>
     <header className="site-header" id="bosh-sahifa">
       <div className="container header-inner">
@@ -68,8 +71,8 @@ export default function App() {
         <div className="hero-shade" />
         <div className="container hero-content">
           <p className="hero-eyebrow"><span /> QURILISHINGIZNING ISHONCHLI ASOSI</p>
-          <h1 id="hero-title" key={slide} aria-live="polite">{heroSlides[slide].lines[0]}<br />{heroSlides[slide].lines[1]}<br /><span>{heroSlides[slide].lines[2]}</span></h1>
-          <p className="hero-description">{heroSlides[slide].description[0]}<br />{heroSlides[slide].description[1]}</p>
+          <h1 id="hero-title" key={slide} aria-live="polite">{heroSlides[slide].lines.map((line) => <span className="hero-line" key={line}><span>{line}</span></span>)}</h1>
+          <p className="hero-description" key={`description-${slide}`}>{heroSlides[slide].description[0]}<br />{heroSlides[slide].description[1]}</p>
           <div className="hero-actions"><a href="#mahsulotlar" className="button button-orange">Mahsulotlarni ko‘rish <ArrowUpRight size={19} /></a><a href="#biz-haqimizda" className="hero-secondary"><span><ArrowDown size={18} /></span> Biz bilan tanishing</a></div>
         </div>
         <div className="hero-coordinate">QARSHI · O‘ZBEKISTON <span>38°51′ N 65°47′ E</span></div>

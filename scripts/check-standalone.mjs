@@ -13,6 +13,7 @@ try {
   page.on('pageerror', error => errors.push(error.message))
   page.on('request', request => { if (/^https?:/.test(request.url())) externalRequests.push(request.url()) })
   await page.setContent(html)
+  expect(errors).toEqual([])
   await page.evaluate(() => document.fonts.ready)
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Katta g‘oyalar.')
   await expect(page.locator('#mahsulotlar article')).toHaveCount(3)
@@ -32,6 +33,7 @@ try {
   console.log('PASS: offline HTML, embedded images/fonts, catalog, dialog, calculator, mobile layout')
 
   await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
   await page.setContent('<iframe sandbox="allow-scripts allow-modals allow-downloads" style="width:100%;height:850px;border:0"></iframe>')
   await page.locator('iframe').evaluate((iframe, content) => { iframe.srcdoc = content }, html)
   const frame = page.frameLocator('iframe')
@@ -44,10 +46,11 @@ try {
   await frame.getByRole('link', { name: 'Mahsulotlarni ko‘rish' }).click()
   await expect(frame.locator('#mahsulotlar')).toBeVisible()
   await expect.poll(() => frame.locator('#mahsulotlar').evaluate(element => element.getBoundingClientRect().top)).toBeLessThan(200)
+  await expect(frame.locator('.product-card').first()).toHaveAttribute('data-motion-reveal', 'visible')
   await expect(frame.getByRole('heading', { level: 1 })).toHaveCount(1)
   expect(errors).toEqual([])
   expect(externalRequests).toEqual([])
-  console.log('PASS: sandboxed srcdoc preview, slides, modal, section navigation, zero external requests or runtime errors')
+  console.log('PASS: animated sandboxed srcdoc preview, slides, modal, section navigation, zero external requests or runtime errors')
 } finally {
   await browser.close()
 }

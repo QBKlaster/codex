@@ -53,9 +53,11 @@ js += `\ndocument.addEventListener('click', function (event) {
   try { history.replaceState(null, '', fragment); } catch {}
 });\n`
 html = html.replace(script[0], '')
-html = html.replace(stylesheet[0], `<style>${css.replace(/<\/style/gi, '<\\/style')}</style>`)
-html = html.replace('href="/favicon.svg"', `href="${await dataUrl('/favicon.svg')}"`)
-html = html.replace('</body>', `<script>${js.replace(/<\/script/gi, '<\\/script')}</script>\n</body>`)
+// A replacement callback preserves literal $&, $' and $$ in minified bundles.
+html = html.replace(stylesheet[0], () => `<style>${css.replace(/<\/style/gi, '<\\/style')}</style>`)
+const favicon = await dataUrl('/favicon.svg')
+html = html.replace('href="/favicon.svg"', () => `href="${favicon}"`)
+html = html.replace('</body>', () => `<script>${js.replace(/<\/script/gi, '<\\/script')}</script>\n</body>`)
 
 if (/<(?:script|link)\b[^>]*(?:src|href)="\/(?:assets|src)\//.test(html)) {
   throw new Error('A script or stylesheet still requires a server')

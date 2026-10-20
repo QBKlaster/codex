@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowUpRight, Box, Check, CircleHelp, Cylinder, Minus, Plus } from 'lucide-react';
 import './ConcreteCalculator.css';
 
@@ -16,6 +16,55 @@ const initialDimensions: Record<Dimension, string> = {
 
 const numberFormat = new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
 const displayNumber = (value: number) => numberFormat.format(value);
+
+function AnimatedVolume({ value }: { value: number | null }) {
+  const element = useRef<HTMLSpanElement>(null);
+  const current = useRef(value);
+  // Keep React's initial text stable; animation frames update only this node.
+  const initialText = useRef(value === null ? '—' : displayNumber(value));
+
+  useLayoutEffect(() => {
+    const node = element.current;
+    if (!node) return;
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let frame: number | undefined;
+
+    function settle() {
+      if (frame !== undefined) cancelAnimationFrame(frame);
+      current.current = value;
+      node!.textContent = value === null ? '—' : displayNumber(value);
+    }
+
+    function onPreferenceChange(event: MediaQueryListEvent) {
+      if (event.matches) settle();
+    }
+
+    preference.addEventListener('change', onPreferenceChange);
+    const startValue = current.current;
+    if (value === null || startValue === null || startValue === value || preference.matches) {
+      settle();
+    } else {
+      const target = value;
+      const started = performance.now();
+      function tick(now: number) {
+        const progress = Math.min((now - started) / 480, 1);
+        const eased = 1 - (1 - progress) ** 3;
+        current.current = startValue! + (target - startValue!) * eased;
+        node!.textContent = displayNumber(current.current);
+        if (progress < 1) frame = requestAnimationFrame(tick);
+        else current.current = target;
+      }
+      frame = requestAnimationFrame(tick);
+    }
+
+    return () => {
+      if (frame !== undefined) cancelAnimationFrame(frame);
+      preference.removeEventListener('change', onPreferenceChange);
+    };
+  }, [value]);
+
+  return <span ref={element}>{initialText.current}</span>;
+}
 
 export function ConcreteCalculator({ onRequest }: { onRequest: (summary: string) => void }) {
   const id = useId();
@@ -89,7 +138,8 @@ export function ConcreteCalculator({ onRequest }: { onRequest: (summary: string)
 
         <div className="calculator-result">
           <div className="calculator-result-top"><span>LOYIHANGIZ UCHUN</span><span className="calculator-grade-pill">{grade}</span></div>
-          <div className="calculator-volume" aria-live="polite" aria-atomic="true"><span>{valid ? displayNumber(volume) : '—'}</span><span>m³</span></div>
+          <div className="calculator-volume" aria-hidden="true"><AnimatedVolume value={valid ? volume : null} /><span>m³</span></div>
+          <span role="status" aria-live="polite" aria-atomic="true" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>{valid ? `${displayNumber(volume)} m³ — taxminiy beton hajmi` : 'Beton hajmi hisoblanmadi.'}</span>
           <p className="calculator-volume-label">taxminiy beton hajmi</p>
           <div className="calculator-formula">
             <div><span>{shape === 'slab' ? 'Uzunlik × kenglik × qalinlik' : 'π × radius² × balandlik × soni'}</span><span>{valid ? `${displayNumber(baseVolume)} m³` : '—'}</span></div>
