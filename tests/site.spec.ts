@@ -1,0 +1,132 @@
+import { test, expect } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+})
+
+test('product filters reveal the right catalog entry and modal closes by Escape', async ({ page }) => {
+  const catalog = page.locator('#mahsulotlar')
+  await expect(catalog.getByRole('article')).toHaveCount(3)
+  await catalog.getByRole('button', { name: 'Temir-beton', exact: true }).click()
+  await expect(catalog.getByRole('article')).toHaveCount(1)
+  await expect(catalog.getByRole('heading', { name: 'Temir-beton mahsulotlari', exact: true })).toBeVisible()
+  await catalog.getByRole('button', { name: 'Temir-beton mahsulotlari haqida batafsil' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Temir-beton mahsulotlari', exact: true })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByText('Yopmalar, tayanchlar', { exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(dialog).not.toBeVisible()
+  await catalog.getByRole('button', { name: 'Bloklar', exact: true }).click()
+  await expect(catalog.getByRole('heading', { name: 'Qurilish bloklari', exact: true })).toBeVisible()
+  await catalog.getByRole('button', { name: /^Barchasi/ }).click()
+  await expect(catalog.getByRole('article')).toHaveCount(3)
+})
+
+test('calculator computes slab and column volumes, reserve and validation', async ({ page }) => {
+  const calculator = page.locator('#kalkulyator')
+  const volume = calculator.locator('.calculator-volume > span').first()
+  await expect(volume).toHaveText(/17[.,]60/)
+  await calculator.getByRole('checkbox').uncheck()
+  await expect(volume).toHaveText(/16[.,]00/)
+  await calculator.getByRole('checkbox').check()
+  await calculator.getByRole('button', { name: 'Ustun', exact: true }).click()
+  await expect(volume).toHaveText(/2[.,]49/)
+  await calculator.getByRole('spinbutton', { name: /Ustunlar soni/ }).fill('1.5')
+  await expect(calculator.getByRole('alert')).toBeVisible()
+  await expect(calculator.getByRole('button', { name: 'Shu hajmga taklif olish' })).toBeDisabled()
+  await calculator.getByRole('spinbutton', { name: /Ustunlar soni/ }).fill('6')
+  await calculator.getByRole('spinbutton', { name: /Diametri/ }).fill('0')
+  await expect(calculator.getByRole('button', { name: 'Shu hajmga taklif olish' })).toBeDisabled()
+  await calculator.getByRole('spinbutton', { name: /Diametri/ }).fill('0.4')
+  await calculator.getByRole('button', { name: 'M350', exact: true }).click()
+  await calculator.getByRole('button', { name: 'Shu hajmga taklif olish' }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('textbox', { name: 'Loyihangiz haqida' })).toHaveValue(/Ustun — M350, 2[.,]49 m³/)
+})
+
+test('product quote forms preserve the selected concrete product category', async ({ page }) => {
+  const catalog = page.locator('#mahsulotlar')
+  for (const product of ['Temir-beton mahsulotlari', 'Qurilish bloklari']) {
+    await catalog.getByRole('button', { name: `${product} haqida batafsil` }).click()
+    const detail = page.getByRole('dialog', { name: product, exact: true })
+    await detail.getByRole('button', { name: 'Narx bo‘yicha so‘rov' }).click()
+    const request = page.getByRole('dialog')
+    await expect(request.getByRole('combobox', { name: 'Qaysi mahsulot kerak?' })).toHaveValue(product)
+    await expect(request.getByRole('textbox', { name: 'Loyihangiz haqida' })).toHaveValue(new RegExp(product))
+    await request.getByRole('button', { name: 'Oynani yopish' }).click()
+  }
+})
+
+test('request validates required fields and downloads the actual prepared request', async ({ page }) => {
+  await page.locator('.header-cta').click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('button', { name: 'So‘rovni tayyorlash' }).click()
+  await expect(dialog.getByRole('heading', { name: 'So‘rovingiz tayyor.' })).toHaveCount(0)
+  await expect(dialog.getByRole('textbox', { name: 'Ismingiz' })).toBeFocused()
+  await dialog.getByRole('textbox', { name: 'Ismingiz' }).fill('Aziz')
+  await dialog.getByRole('textbox', { name: 'Telefon raqamingiz' }).fill('+998 90 123 45 67')
+  await dialog.getByRole('combobox', { name: 'Qaysi mahsulot kerak?' }).selectOption('Qurilish bloklari')
+  await dialog.getByRole('textbox', { name: 'Loyihangiz haqida' }).fill('Qarshidagi uy qurilishi uchun 500 dona blok kerak.')
+  await dialog.getByRole('button', { name: 'So‘rovni tayyorlash' }).click()
+  await expect(dialog.getByRole('heading', { name: 'So‘rovingiz tayyor.' })).toBeVisible()
+  await expect(dialog.getByText('So‘rov korxonaga avtomatik yuborilmadi.')).toBeVisible()
+  const downloadPromise = page.waitForEvent('download')
+  await dialog.getByRole('button', { name: 'So‘rovni yuklab olish' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toBe('QBK-loyiha-sorovi.txt')
+  const path = await download.path()
+  expect(path).toBeTruthy()
+  const contents = await readFile(path!, 'utf8')
+  expect(contents).toContain('Ism: Aziz')
+  expect(contents).toContain('Telefon: +998 90 123 45 67')
+  expect(contents).toContain('Mahsulot: Qurilish bloklari')
+  expect(contents).toContain('500 dona blok kerak')
+  await dialog.getByRole('button', { name: 'Oynani yopish' }).click()
+  await expect(dialog).not.toBeVisible()
+})
+
+test('hero carousel changes content in both directions', async ({ page }) => {
+  const hero = page.locator('.hero')
+  await expect(hero.getByRole('heading', { level: 1 })).toContainText('Katta g‘oyalar.')
+  await hero.getByRole('button', { name: 'Keyingi slayd' }).click()
+  await expect(hero.getByRole('heading', { level: 1 })).toContainText('Har bir detal.')
+  await hero.getByRole('button', { name: 'Oldingi slayd' }).click()
+  await expect(hero.getByRole('heading', { level: 1 })).toContainText('Katta g‘oyalar.')
+  await hero.getByRole('button', { name: 'Oldingi slayd' }).click()
+  await expect(hero.getByRole('heading', { level: 1 })).toContainText('Bugun asos.')
+})
+
+test('FAQ expands one answer and collapses the previous answer', async ({ page }) => {
+  const question = page.getByRole('button', { name: /Qancha beton kerakligini qanday hisoblayman/ })
+  const first = page.getByRole('button', { name: /Qaysi beton markasini tanlash kerak/ })
+  await expect(first).toHaveAttribute('aria-expanded', 'true')
+  await question.click()
+  await expect(question).toHaveAttribute('aria-expanded', 'true')
+  await expect(first).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.locator('#answer-1')).toBeVisible()
+  await expect(page.locator('#answer-0')).toBeHidden()
+})
+
+test('mobile menu navigates and closes after choosing a section', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const menuButton = page.getByRole('button', { name: 'Menyuni ochish' })
+  await menuButton.click()
+  const menu = page.getByRole('navigation', { name: 'Mobil navigatsiya' })
+  await expect(menu).toBeVisible()
+  await menu.getByRole('link', { name: 'Kalkulyator', exact: true }).click()
+  await expect(menu).toHaveCount(0)
+  await expect(page).toHaveURL(/#kalkulyator$/)
+  await expect(page.getByRole('button', { name: 'Menyuni ochish' })).toHaveAttribute('aria-expanded', 'false')
+})
+
+for (const width of [320, 390, 1440]) {
+  test(`layout has no horizontal overflow at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 })
+    await page.evaluate(async () => { await document.fonts.ready })
+    const dimensions = await page.evaluate(() => ({ content: document.documentElement.scrollWidth, viewport: window.innerWidth }))
+    expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport)
+    const images = await page.locator('img').evaluateAll((elements) => elements.map((image) => ({ src: image.getAttribute('src'), complete: image.complete, width: image.naturalWidth })))
+    expect(images.find((image) => image.src === '/architecture.webp')?.width).toBeGreaterThan(0)
+  })
+}
