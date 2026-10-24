@@ -1891,11 +1891,11 @@ setInterval(function(){if(C.dirty)push()},120000);
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function card(box){var sz=0;Object.keys(M).forEach(function(k){if(syncable(k))sz+=M[k].length});
  box.insertAdjacentHTML("beforeend",'<div class="card" style="display:grid;gap:10px" id="scc"><h3 style="margin:0">☁ Google Drive bilan sinxron</h3>'+
- '<p class="m">Ma’lumotlar Google Drive’ingizdagi «SAT Tayyorlov ma’lumotlari» papkasida saqlanadi. Har qanday qurilmada shu havola va kalitni kiritsangiz, hammasi chiqadi. Hozirgi hajm: <b>'+(sz/1048576).toFixed(2)+' MB</b>.</p>'+
+ '<p class="m">Ma’lumotlar Google Drive’ingizdagi «SAT Tayyorlov ma’lumotlari» papkasida saqlanadi. Har qanday qurilmada shu havola va kalitni kiritsangiz, hammasi chiqadi.</p><div id="scq" style="display:grid;gap:10px"></div>'+
  (on()?'<p>Holat: <b id="scst">'+stText()+'</b></p><div class="row" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="scn">Hozir saqlash</button><button class="btn s" id="scg">Bulutdan qayta yuklash</button><button class="btn s" id="sco">Uzish</button></div>'
  :'<label for="scu">Apps Script havolasi (…/exec)</label><input type="text" id="scu" placeholder="https://script.google.com/macros/s/…/exec" value="'+esc(C.url)+'">'+
   '<label for="sck">Maxfiy kalit</label><input type="text" id="sck" autocomplete="off" value="'+esc(C.key)+'"><div><button class="btn" id="scc1">Ulash</button></div>')+'</div>');
- var $=function(i){return document.getElementById(i)};
+ var $=function(i){return document.getElementById(i)};quota(sz);
  if($("scc1"))$("scc1").onclick=function(){var b=this,u=$("scu").value.trim(),k=$("sck").value.trim();
   if(!/^https:\/\/script\.google(usercontent)?\.com\//.test(u)){toast("Havola script.google.com bilan boshlanishi kerak");return}if(!k){toast("Kalitni kiriting");return}
   b.disabled=true;b.textContent="Ulanmoqda…";C.url=u;C.key=k;
@@ -1907,6 +1907,15 @@ function card(box){var sz=0;Object.keys(M).forEach(function(k){if(syncable(k))sz
  if($("scg"))$("scg").onclick=function(){ask("Bulutdagi ma’lumot shu qurilmaga yuklanadi (shu qurilmadagi saqlanmagan o’zgarishlar birlashtiriladi). Davom etasizmi?","Yuklash",function(){
   (C.dirty?conflict():pull().then(function(){return store.flush()}).then(function(){reloadMsg("Bulutdan yuklandi")})).catch(function(){toast("Yuklab bo’lmadi")})})};
  if($("sco"))$("sco").onclick=function(){ask("Bu qurilma bulutdan uziladi. Ma’lumotlar shu brauzerda va Drive’da qoladi.","Uzish",function(){C={url:"",key:"",rev:0,dirty:false,ch:{},at:0};saveC();render()})}}
+var LIM=45*1048576;
+function mb(b){return b>=1073741824?(b/1073741824).toFixed(1)+" GB":(b/1048576).toFixed(b<10485760?2:1)+" MB"}
+function bar(t,used,tot,note){var pc=tot?Math.min(100,used/tot*100):0,c=pc>90?"var(--bad)":pc>70?"var(--warn)":"var(--ok)";
+ return'<div style="display:grid;gap:4px"><div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:4px"><b>'+t+'</b><span>Qoldi: <b>'+mb(Math.max(0,tot-used))+'</b></span></div>'+
+ '<div style="height:10px;background:var(--border);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+Math.max(pc,used?1:0).toFixed(1)+'%;background:'+c+'"></div></div>'+
+ '<span class="m" style="font-size:13px">Band: '+mb(used)+' / '+mb(tot)+' ('+pc.toFixed(1)+'%)'+(note?' · '+note:'')+'</span></div>'}
+function quota(sz){var q=document.getElementById("scq");if(!q)return;var b=sz*2;
+ q.innerHTML=bar("Google Drive sinxroni",sz,LIM,on()?"":"hali ulanmagan")+'<div id="scq2"></div>';
+ if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(function(e){var x=document.getElementById("scq2");if(x&&e.quota)x.innerHTML=bar("Shu qurilmadagi brauzer xotirasi",e.usage||0,e.quota,"")}).catch(function(){})}
 window.SATCLOUD={on:on,card:card,push:push};
 /* --- ishga tushirish --- */
 function boot(){var pill=document.createElement("div");pill.id="sat-cloud-pill";
