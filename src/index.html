@@ -337,7 +337,6 @@ input[type=range]{width:100%;accent-color:var(--gold);height:28px}
           <div class="row"><span>Bitiruv</span><b>2006-yil</b></div>
           <div class="row"><span>Sana</span><b>8-noyabr, 2026 · yakshanba</b></div>
           <div class="row"><span>Vaqt</span><b>10:00 va 11:30</b></div>
-          <div class="row"><span>Kimga</span><input class="name-in" id="nameIn" type="text" maxlength="40" placeholder="ismingizni yozing..." aria-label="Ismingiz" autocomplete="given-name"></div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
           <button class="open-btn" id="openBtn" type="button"><span aria-hidden="true">🔔</span> Taklifnomani ochish</button>
@@ -419,18 +418,17 @@ input[type=range]{width:100%;accent-color:var(--gold);height:28px}
       <div class="time">11:30</div>
       <div class="l-body">
         <h3>Bayram tadbiri</h3>
-        <p>Yakkabog' tuman markazida.</p>
-        <span class="pending">Manzil hozircha aniqlanmoqda — aniqlangach xabar beriladi.</span><br>
+        <p>Manzil: Yakkabog' shahri, <strong>"Musaffo"</strong> oilaviy restorani.</p>
         <span class="status" id="c2">⏳</span>
         <div class="btns">
-          <span class="btn" aria-disabled="true">📍 Lokatsiya tez orada</span>
-          <a class="btn alt" href="https://www.google.com/maps/search/?api=1&query=Yakkabog%27+shahri+Qashqadaryo" target="_blank" rel="noopener">Yakkabog' markazi</a>
+          <a class="btn" href="https://share.google/mHDo93S3EuPYwALoa" target="_blank" rel="noopener">📍 Lokatsiyani ochish</a>
+          <a class="btn alt" href="https://yandex.uz/maps/?text=Musaffo%20oilaviy%20restorani%20Yakkabog%27" target="_blank" rel="noopener">Yandex xarita</a>
         </div>
       </div>
     </div>
 
     <div class="nb-foot">
-      <a class="btn alt" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Diydor+shirin+%E2%80%94+20+yillik+uchrashuv&dates=20261108T050000Z/20261108T110000Z&details=10%3A00+%E2%80%94+32-maktabda+yig%27ilish%0A11%3A30+%E2%80%94+Yakkabog%27+tuman+markazida+bayram+tadbiri&location=32-maktab%2C+Yakkabog%27" target="_blank" rel="noopener">🗓 Kalendarga qo'shish</a>
+      <a class="btn alt" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Diydor+shirin+%E2%80%94+20+yillik+uchrashuv&dates=20261108T050000Z/20261108T110000Z&details=10%3A00+%E2%80%94+32-maktabda+yig%27ilish%0A11%3A30+%E2%80%94+bayram+tadbiri%3A+Yakkabog%27+shahri%2C+%22Musaffo%22+oilaviy+restorani&location=32-maktab%2C+Yakkabog%27" target="_blank" rel="noopener">🗓 Kalendarga qo'shish</a>
     </div>
   </section>
 
@@ -582,13 +580,13 @@ input[type=range]{width:100%;accent-color:var(--gold);height:28px}
 
   /* ---------- ism (shaxsiy) ---------- */
   const savedName=store.get("dsh_name")||"";
-  $("nameIn").value=savedName;$("jName").value=store.get("dsh_jname")||savedName;
+  $("jName").value=store.get("dsh_jname")||savedName;
   function applyName(n){
     n=(n||"").trim();
     const p=$("personal");
     if(n){p.textContent="Hurmatli "+n+", sizni kutamiz!";p.hidden=false}else p.hidden=true;
   }
-  applyName(savedName);
+
 
   /* ---------- konfetti / bo'r changi ---------- */
   const fx=$("fx"),fc=fx.getContext("2d");let parts=[],raf=null;
@@ -631,8 +629,7 @@ input[type=range]{width:100%;accent-color:var(--gold);height:28px}
   let opened=false;
   function openInvite(){
     if(opened)return;opened=true;
-    const n=$("nameIn").value.trim();store.set("dsh_name",n);applyName(n);
-    if(n&&!$("jName").value)$("jName").value=n;
+
     $("cover").classList.add("open");paper();
     setTimeout(()=>{bell(8);const r=$("cover").getBoundingClientRect();burst(innerWidth/2,innerHeight*.45,140)},650);
     setTimeout(()=>{$("intro").classList.add("gone");document.body.classList.remove("locked");$("main").classList.remove("pre");$("main").classList.add("go");
@@ -640,7 +637,6 @@ input[type=range]{width:100%;accent-color:var(--gold);height:28px}
   }
   $("openBtn").addEventListener("click",e=>{e.stopPropagation();openInvite()});
   $("cover").addEventListener("click",e=>{if(e.target.closest("input"))return;openInvite()});
-  $("nameIn").addEventListener("keydown",e=>{if(e.key==="Enter")openInvite()});
   $("againBtn").onclick=()=>{opened=false;scrollTo(0,0);$("cover").classList.remove("open");$("intro").classList.remove("gone");document.body.classList.add("locked");$("main").classList.remove("go");$("main").classList.add("pre")};
   document.body.classList.add("locked");
 
@@ -711,7 +707,7 @@ input[type=range]{width:100%;accent-color:var(--gold);height:28px}
   renderMark();
 
   /* ---------- ulashish ---------- */
-  const inv="Assalomu alaykum, aziz sinfdosh!\n\n2006-yil bitiruvchilari \"Diydor shirin\" — 20 yillik uchrashuvga taklif etadi.\n\n📅 8-noyabr 2026, yakshanba\n🕙 10:00 — 32-maktabda yig'ilish, o'quvchilik davrlarini eslash\n🕦 11:30 — Yakkabog' tuman markazida bayram tadbiri (manzil aniqlangach xabar beriladi)\n\n📞 Safarov Jasurbek: +998 90 733 50 26";
+  const inv="Assalomu alaykum, aziz sinfdosh!\n\n2006-yil bitiruvchilari \"Diydor shirin\" — 20 yillik uchrashuvga taklif etadi.\n\n📅 8-noyabr 2026, yakshanba\n🕙 10:00 — 32-maktabda yig'ilish, o'quvchilik davrlarini eslash\n🕦 11:30 — bayram tadbiri: Yakkabog' shahri, \"Musaffo\" oilaviy restorani\n📍 https://share.google/mHDo93S3EuPYwALoa\n\n📞 Safarov Jasurbek: +998 90 733 50 26";
   $("cpInv").onclick=()=>copy(inv,"Taklif matni nusxalandi");
   $("tgInv").href="https://t.me/share/url?url="+encodeURIComponent("Diydor shirin · 08.11.2026")+"&text="+encodeURIComponent(inv);
   $("cpPhone").onclick=()=>copy("+998907335026","Raqam nusxalandi",$("ph"));
